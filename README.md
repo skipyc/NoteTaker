@@ -4,6 +4,6 @@ You can create notes, move them around and resize them at the bottom right corne
 
 Nice and simple.
 
-Also avaliple on GitHub Pages: https://skipyc.github.io/NoteTaker/
+Also avalible on GitHub Pages: https://skipyc.github.io/NoteTaker/
 
 ![](./example.png)
