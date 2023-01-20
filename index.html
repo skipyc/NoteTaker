@@ -14,6 +14,7 @@
             border: 1px solid black;
             display: flex;
             flex-direction: column;
+            z-index: 5000;
         }
 
         button {
@@ -160,7 +161,12 @@
             contextMenu.style.top = event.pageY + "px";
         });
 
-        let divId = 0;
+        // let divId = 0;
+        let lastClickedDiv = undefined;
+
+        function generateId() {
+            return "div_" + Date.now();
+        }
 
         function ahaha(ConEvent, top = undefined, left = undefined, width = undefined, height = undefined, text = undefined) {
             let resizableDiv = document.createElement("div");
@@ -175,6 +181,7 @@
             }
             resizableDiv.style.backgroundColor = "white";
             resizableDiv.style.border = "1px solid black";
+            resizableDiv.style.zIndex = 4;
 
             let textArea = document.createElement("textarea");
             textArea.style.resize = "none";
@@ -182,9 +189,8 @@
             if (text != undefined) {
                 textArea.value = text;
             }
-            
-            resizableDiv.id = divId;
-            divId++;
+
+            resizableDiv.id = generateId()
 
             let deleteButton = document.createElement("button");
             deleteButton.innerHTML = "x";
@@ -209,7 +215,15 @@
                     offsetY = event.clientY - resizableDiv.offsetTop;
                     if (offsetY <= 20) {
                         dragging = true;
+                        resizableDiv.style.zIndex = 3;
+                        lastClickedDiv = resizableDiv;
                     }
+                }
+            });
+            resizableDiv.addEventListener("mousedown", function (event) {
+                if (event.target === textArea) {
+                    resizableDiv.style.zIndex = 3;
+                    lastClickedDiv = resizableDiv;
                 }
             });
             document.addEventListener("mousemove", function (event) {
@@ -220,6 +234,13 @@
             });
             document.addEventListener("mouseup", function () {
                 dragging = false;
+
+                Array.from(document.getElementsByClassName("resizable-div")).forEach(element => {
+                    element.style.zIndex = 1;
+                });
+                if (lastClickedDiv != undefined) {
+                    lastClickedDiv.style.zIndex = 2;
+                }
             });
 
             resizableDiv.addEventListener("mouseup", function () {
@@ -282,11 +303,15 @@
                 let file = input.files[0];
                 let reader = new FileReader();
                 reader.addEventListener("load", function () {
+                    localStorage.clear()
                     let data = JSON.parse(reader.result);
                     for (let key in data) {
                         localStorage.setItem(key, data[key]);
                     }
-                    location.reload();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 200)
+
                 });
                 reader.readAsText(file);
             });
