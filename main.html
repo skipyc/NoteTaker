@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteTaker</title>
+
+    <style>
+        .custom-context-menu {
+            position: absolute;
+            background-color: white;
+            border: 1px solid black;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            background-color: transparent;
+            border: none;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .contextButton {
+            padding: 10px;
+        }
+
+        .contextButton:hover {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .closeBtn {
+            align-self: flex-end;
+        }
+
+
+
+        .resizable-div {
+            resize: both;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resizable-div button:hover {
+            background-color: red;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        const throttle = (fn, limit) => {
+            let lastFn;
+            let lastRan;
+            return function () {
+                const context = this;
+                const args = arguments;
+                if (!lastRan) {
+                    fn.apply(context, args);
+                    lastRan = Date.now();
+                } else {
+                    clearTimeout(lastFn);
+                    lastFn = setTimeout(function () {
+                        if ((Date.now() - lastRan) >= limit) {
+                            fn.apply(context, args);
+                            lastRan = Date.now();
+                        }
+                    }, limit - (Date.now() - lastRan));
+                }
+            }
+        }
+        window.addEventListener("load", function () {
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith("resizableDiv")) {
+                    let storedData = localStorage.getItem(key);
+                    storedData = JSON.parse(storedData);
+                    let resizableDiv = ahaha(undefined, storedData.top,
+                        storedData.left,
+                        storedData.width,
+                        storedData.height,
+                        storedData.text)
+                    resizableDiv.style.top = storedData.top;
+                    resizableDiv.style.left = storedData.left;
+                    resizableDiv.style.width = storedData.width;
+                    resizableDiv.style.height = storedData.height;
+                    resizableDiv.id = key.substring(12);
+                }
+            }
+        });
+
+        document.addEventListener('contextmenu', event => {
+            event.preventDefault();
+
+            // Create the context menu element
+            let contextMenu = document.createElement("div");
+            contextMenu.classList.add("custom-context-menu");
+
+            // Add Note
+            // Create the button element
+            let button = document.createElement("button");
+            button.innerHTML = "Add note";
+            button.className = "contextButton";
+            button.addEventListener("click", function () {
+                contextMenu.remove();
+                ahaha(event);
+            });
+
+            // Append the button to the context menu
+            contextMenu.appendChild(button);
+
+            // Append the context menu to the body
+            document.body.appendChild(contextMenu);
+
+            // Save JSON
+            // Create the button element
+            let buttonJSON = document.createElement("button");
+            buttonJSON.innerHTML = "Save JSON";
+            buttonJSON.className = "contextButton";
+            buttonJSON.addEventListener("click", function () {
+                contextMenu.remove();
+                // ahaha(event);
+                downloadLocalStorage()
+            });
+
+            // Append the buttonJSON to the context menu
+            contextMenu.appendChild(buttonJSON);
+
+            // Load JSON
+            // Create the button element
+            let buttonLoadJSON = document.createElement("button");
+            buttonLoadJSON.innerHTML = "Load JSON";
+            buttonLoadJSON.className = "contextButton";
+            buttonLoadJSON.addEventListener("click", function () {
+                contextMenu.remove();
+                // ahaha(event);
+                // downloadLocalStorage()
+                loadJSONFile()
+            });
+
+            // Append the buttonLoadJSON to the context menu
+            contextMenu.appendChild(buttonLoadJSON);
+
+            // Append the context menu to the body
+            document.body.appendChild(contextMenu);
+
+            // Position the context menu
+            contextMenu.style.left = event.pageX + "px";
+            contextMenu.style.top = event.pageY + "px";
+        });
+
+        let divId = 0;
+
+        function ahaha(ConEvent, top = undefined, left = undefined, width = undefined, height = undefined, text = undefined) {
+            let resizableDiv = document.createElement("div");
+            resizableDiv.classList.add("resizable-div");
+            resizableDiv.style.position = "absolute";
+            if (top == undefined & left == undefined) {
+                resizableDiv.style.top = ConEvent.clientY + "px";
+                resizableDiv.style.left = ConEvent.clientX + "px";
+            } else {
+                resizableDiv.style.top = top + "px";
+                resizableDiv.style.left = left + "px";
+            }
+            resizableDiv.style.backgroundColor = "white";
+            resizableDiv.style.border = "1px solid black";
+
+            let textArea = document.createElement("textarea");
+            textArea.style.resize = "none";
+            textArea.style.flexBasis = "100%"
+            if (text != undefined) {
+                textArea.value = text;
+            }
+
+            let deleteButton = document.createElement("button");
+            deleteButton.innerHTML = "x";
+            // deleteButton.style.float = "right";
+            deleteButton.className = "closeBtn";
+            deleteButton.addEventListener("click", function () {
+                resizableDiv.remove();
+            });
+
+            resizableDiv.appendChild(deleteButton);
+            resizableDiv.appendChild(textArea);
+            resizableDiv.id = divId;
+            divId++;
+            document.body.appendChild(resizableDiv);
+
+            // Draggable function 
+            let dragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            resizableDiv.addEventListener("mousedown", function (event) {
+                if (event.target === resizableDiv) {
+                    offsetX = event.clientX - resizableDiv.offsetLeft;
+                    offsetY = event.clientY - resizableDiv.offsetTop;
+                    if (offsetY <= 20) {
+                        dragging = true;
+                    }
+                }
+            });
+            document.addEventListener("mousemove", function (event) {
+                if (dragging) {
+                    resizableDiv.style.left = (event.clientX - offsetX) + "px";
+                    resizableDiv.style.top = (event.clientY - offsetY) + "px";
+                }
+            });
+            document.addEventListener("mouseup", function () {
+                dragging = false;
+            });
+
+            resizableDiv.addEventListener("mouseup", function () {
+                let data = {
+                    top: resizableDiv.style.top,
+                    left: resizableDiv.style.left,
+                    width: resizableDiv.style.width,
+                    height: resizableDiv.style.height,
+                    text: textArea.value
+                }
+                localStorage.setItem("resizableDiv" + resizableDiv.id, JSON.stringify(data));
+            });
+
+            resizableDiv.addEventListener("input", function () {
+                let data = {
+                    top: resizableDiv.style.top,
+                    left: resizableDiv.style.left,
+                    width: resizableDiv.style.width,
+                    height: resizableDiv.style.height,
+                    text: textArea.value
+                }
+                localStorage.setItem("resizableDiv" + resizableDiv.id, JSON.stringify(data));
+            });
+
+            return resizableDiv;
+        }
+
+        document.addEventListener("click", function (event) {
+            let contextMenu = document.querySelector(".custom-context-menu");
+            if (contextMenu) {
+                if (!contextMenu.contains(event.target)) {
+                    contextMenu.remove();
+                }
+            }
+        });
+
+        function downloadLocalStorage() {
+            let data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+
+            let json = JSON.stringify(data);
+
+            let a = document.createElement("a");
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(json);
+            a.download = "localStorage.json";
+            a.innerHTML = "Download local storage";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function loadJSONFile() {
+            let input = document.createElement("input");
+            input.type = "file";
+            input.accept = "application/json";
+            input.addEventListener("change", function () {
+                let file = input.files[0];
+                let reader = new FileReader();
+                reader.addEventListener("load", function () {
+                    let data = JSON.parse(reader.result);
+                    for (let key in data) {
+                        localStorage.setItem(key, data[key]);
+                    }
+                    location.reload();
+                });
+                reader.readAsText(file);
+            });
+            input.click();
+        }
+
+
+
+    </script>
+</body>
+
+</html>
