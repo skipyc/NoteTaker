@@ -38,8 +38,6 @@
             align-self: flex-end;
         }
 
-
-
         .resizable-div {
             resize: both;
             overflow: auto;
@@ -128,7 +126,6 @@
             buttonJSON.className = "contextButton";
             buttonJSON.addEventListener("click", function () {
                 contextMenu.remove();
-                // ahaha(event);
                 downloadLocalStorage()
             });
 
@@ -142,8 +139,6 @@
             buttonLoadJSON.className = "contextButton";
             buttonLoadJSON.addEventListener("click", function () {
                 contextMenu.remove();
-                // ahaha(event);
-                // downloadLocalStorage()
                 loadJSONFile()
             });
 
@@ -180,19 +175,20 @@
             if (text != undefined) {
                 textArea.value = text;
             }
+            
+            resizableDiv.id = divId;
+            divId++;
 
             let deleteButton = document.createElement("button");
             deleteButton.innerHTML = "x";
-            // deleteButton.style.float = "right";
             deleteButton.className = "closeBtn";
             deleteButton.addEventListener("click", function () {
                 resizableDiv.remove();
+                localStorage.removeItem("resizableDiv" + resizableDiv.id)
             });
 
             resizableDiv.appendChild(deleteButton);
             resizableDiv.appendChild(textArea);
-            resizableDiv.id = divId;
-            divId++;
             document.body.appendChild(resizableDiv);
 
             // Draggable function 
