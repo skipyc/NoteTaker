@@ -1,0 +1,80 @@
+:root {
+    --background: white;
+    --text: black;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.custom-context-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    z-index: 5000;
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    color: #666;
+    font-size: 18px;
+}
+
+.contextButton {
+    padding: 10px;
+}
+
+.contextButton:hover {
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.closeBtn {
+    align-self: flex-end;
+}
+
+.resizable-div {
+    resize: both;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border: 1px solid black;
+    /* transition: background-color 0.3s ease-in-out; */
+}
+
+.resizable-div button:hover {
+    background-color: red;
+    color: white;
+    cursor: pointer;
+    /* transition: background-color 0.3s ease-in-out; */
+}
+
+textarea {
+    margin: 0px;
+    background-color: transparent;
+    color: black;
+    /* transition: background-color 0.3s ease-in-out; */
+}
+
+textarea:focus {
+    outline: black 1px solid;
+}
+
+.menu-container {
+    background-color: white;
+    border: 1px solid black;
+}
+
+#hamburger-button:hover {
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+}

@@ -6,64 +6,124 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NoteTaker</title>
-
-    <style>
-        .custom-context-menu {
-            position: absolute;
-            background-color: white;
-            border: 1px solid black;
-            display: flex;
-            flex-direction: column;
-            z-index: 5000;
-        }
-
-        button {
-            background-color: transparent;
-            border: none;
-            color: #666;
-            font-size: 18px;
-        }
-
-        .contextButton {
-            padding: 10px;
-        }
-
-        .contextButton:hover {
-            background-color: #333;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .closeBtn {
-            align-self: flex-end;
-        }
-
-        .resizable-div {
-            resize: both;
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .resizable-div button:hover {
-            background-color: red;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        textarea {
-            margin: 0px;
-        }
-        textarea:focus {
-            outline: black 1px solid;
-        }
-    </style>
+    <link id="theme-link" rel="stylesheet" href="theme-light.css">
 </head>
 
+<style>
+    body {
+        transition: background-color 0.2s ease-in-out !important;
+    }
+
+    body>* {
+        transition: background-color 0.2s ease-in-out !important;
+    }
+
+    textarea {
+        transition: color 0.2s ease-in-out !important;
+    }
+
+    #menu-container {
+        display: none;
+    }
+
+    #menu-container.show {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .menu-container {
+        position: relative;
+        justify-content: center;
+        height: 250px;
+        width: 200px;
+        user-select: none;
+        z-index: 4999 !important;
+    }
+
+    /* #toggle-button {
+        align-self: flex-start;
+    } */
+
+    .josn-button {
+        align-self: flex-end;
+    }
+</style>
+
 <body>
+    <!--  -->
+    <button id="hamburger-button">&#9776;</button>
+    <div class="menu-container" id="menu-container">
+        <button id="toggle-button" class="contextButton">Toggle Dark Mode</button>
+        <button id="" class="contextButton json-button" onclick="downloadLocalStorage()">Save JSON</button>
+        <button id="" class="contextButton json-button" onclick="loadJSONFile()">Load JOSN</button>
+    </div>
+
     <script>
+        let hamburgerButton = document.getElementById("hamburger-button");
+        let menuContainer = document.getElementById("menu-container");
+
+        hamburgerButton.addEventListener("click", function () {
+            menuContainer.classList.toggle("show");
+        });
+
+        menuContainer.addEventListener("onmouseout", function () {
+            if (menuContainer.classList.contains("show")) {
+                menuContainer.classList.toggle("show");
+            }
+        });
+    </script>
+
+    <script>
+        let toggleButton = document.getElementById('toggle-button');
+        let link = document.getElementById('theme-link');
+
+        // check if the user has selected the dark theme before
+        if (localStorage.getItem('theme') === 'dark') {
+            link.setAttribute('href', 'theme-dark.css');
+            toggleButton.innerHTML = 'Toggle Light Mode';
+        }
+
+        toggleButton.addEventListener('click', function () {
+            if (link.getAttribute('href') === 'theme-light.css') {
+                link.setAttribute('href', 'theme-dark.css');
+                toggleButton.innerHTML = 'Toggle Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                link.setAttribute('href', 'theme-light.css');
+                toggleButton.innerHTML = 'Toggle Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+
+    <script>
+        var zIndexOrder = [];
+
+        function addNewToZIndex(element) {
+            zIndexOrder.push(element)
+            element.style.zIndex = zIndexOrder.length;
+        }
+
+        function setLastToZIndex(element) {
+            let index = zIndexOrder.indexOf(element);
+            if (index != zIndexOrder.length - 1) {
+                zIndexOrder = [...zIndexOrder.slice(0, index), ...zIndexOrder.slice(index + 1)]
+                zIndexOrder.push(element);
+            }
+        }
+
+        function setZIndex() {
+            zIndexOrder.forEach((x, i) => {
+                x.style.zIndex = i
+                let objKey = "resizableDiv" + x.id;
+                // console.log(objKey)
+                let obj = JSON.parse(localStorage.getItem(objKey))
+                obj.zIndex = x.style.zIndex
+                localStorage.setItem(objKey, JSON.stringify(obj))
+            })
+
+        }
+
         const throttle = (fn, limit) => {
             let lastFn;
             let lastRan;
@@ -84,6 +144,7 @@
                 }
             }
         }
+
         window.addEventListener("load", function () {
             for (let i = 0; i < localStorage.length; i++) {
                 let key = localStorage.key(i);
@@ -99,6 +160,9 @@
                     resizableDiv.style.left = storedData.left;
                     resizableDiv.style.width = storedData.width;
                     resizableDiv.style.height = storedData.height;
+                    if (storedData.zIndex != undefined) {
+                        resizableDiv.style.zIndex = storedData.zIndex;
+                    }
                     resizableDiv.id = key.substring(12);
                 }
             }
@@ -138,7 +202,7 @@
             });
 
             // Append the buttonJSON to the context menu
-            contextMenu.appendChild(buttonJSON);
+            // contextMenu.appendChild(buttonJSON);
 
             // Load JSON
             // Create the button element
@@ -151,7 +215,7 @@
             });
 
             // Append the buttonLoadJSON to the context menu
-            contextMenu.appendChild(buttonLoadJSON);
+            // contextMenu.appendChild(buttonLoadJSON);
 
             // Append the context menu to the body
             document.body.appendChild(contextMenu);
@@ -160,9 +224,6 @@
             contextMenu.style.left = event.pageX + "px";
             contextMenu.style.top = event.pageY + "px";
         });
-
-        // let divId = 0;
-        let lastClickedDiv = undefined;
 
         function generateId() {
             return "div_" + Date.now();
@@ -179,10 +240,10 @@
                 resizableDiv.style.top = top + "px";
                 resizableDiv.style.left = left + "px";
             }
-            resizableDiv.style.backgroundColor = "white";
-            resizableDiv.style.border = "1px solid black";
-            resizableDiv.style.zIndex = 4;
-
+            zIndexOrder.push(resizableDiv)
+            if(ConEvent != undefined) {
+                resizableDiv.style.zIndex = zIndexOrder.length - 1
+            }
             let textArea = document.createElement("textarea");
             textArea.style.resize = "none";
             textArea.style.flexBasis = "100%"
@@ -215,15 +276,15 @@
                     offsetY = event.clientY - resizableDiv.offsetTop;
                     if (offsetY <= 20) {
                         dragging = true;
-                        resizableDiv.style.zIndex = 3;
-                        lastClickedDiv = resizableDiv;
+                        setLastToZIndex(resizableDiv)
+                        setZIndex()
                     }
                 }
             });
             resizableDiv.addEventListener("mousedown", function (event) {
                 if (event.target === textArea) {
-                    resizableDiv.style.zIndex = 3;
-                    lastClickedDiv = resizableDiv;
+                    setLastToZIndex(resizableDiv)
+                    setZIndex()
                 }
             });
             document.addEventListener("mousemove", function (event) {
@@ -234,13 +295,6 @@
             });
             document.addEventListener("mouseup", function () {
                 dragging = false;
-
-                Array.from(document.getElementsByClassName("resizable-div")).forEach(element => {
-                    element.style.zIndex = 1;
-                });
-                if (lastClickedDiv != undefined) {
-                    lastClickedDiv.style.zIndex = 2;
-                }
             });
 
             resizableDiv.addEventListener("mouseup", function () {
@@ -249,7 +303,8 @@
                     left: resizableDiv.style.left,
                     width: resizableDiv.style.width,
                     height: resizableDiv.style.height,
-                    text: textArea.value
+                    text: textArea.value,
+                    zIndex: resizableDiv.style.zIndex
                 }
                 localStorage.setItem("resizableDiv" + resizableDiv.id, JSON.stringify(data));
             });
@@ -260,7 +315,8 @@
                     left: resizableDiv.style.left,
                     width: resizableDiv.style.width,
                     height: resizableDiv.style.height,
-                    text: textArea.value
+                    text: textArea.value,
+                    zIndex: resizableDiv.style.zIndex
                 }
                 localStorage.setItem("resizableDiv" + resizableDiv.id, JSON.stringify(data));
             });
@@ -317,9 +373,6 @@
             });
             input.click();
         }
-
-
-
     </script>
 </body>
 
