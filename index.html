@@ -70,7 +70,6 @@
 
     .dialog-box {
         position: relative;
-        /* background-color: rgba(0, 0, 0, 0.8); */
         border-radius: 8px;
         width: 230px;
         height: 130px;
@@ -147,8 +146,6 @@
         });
 
         menuContainer.addEventListener("mouseleave", function (e) {
-            console.log(e)
-            // if(e.relatedTarget !== )
             menuContainer.classList.toggle("show");
         });
     </script>
@@ -196,7 +193,6 @@
             zIndexOrder.forEach((x, i) => {
                 x.style.zIndex = i
                 let objKey = "resizableDiv" + x.id;
-                // console.log(objKey)
                 let obj = JSON.parse(localStorage.getItem(objKey))
                 obj.zIndex = x.style.zIndex
                 localStorage.setItem(objKey, JSON.stringify(obj))
