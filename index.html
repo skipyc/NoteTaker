@@ -251,6 +251,10 @@
         document.addEventListener('contextmenu', event => {
             event.preventDefault();
 
+            Array.from(document.getElementsByClassName("custom-context-menu")).forEach(x => {
+                x.remove()
+            })
+
             // Create the context menu element
             let contextMenu = document.createElement("div");
             contextMenu.classList.add("custom-context-menu");
