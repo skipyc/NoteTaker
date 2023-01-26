@@ -49,14 +49,94 @@
     }
 </style>
 
+<style>
+    .dialog-bg {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0px;
+        left: 0px;
+        z-index: 5001;
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    #dialog-saveas {
+        display: none;
+    }
+
+    #dialog-saveas.showdig {
+        display: block;
+    }
+
+    .dialog-box {
+        position: relative;
+        /* background-color: rgba(0, 0, 0, 0.8); */
+        border-radius: 8px;
+        width: 230px;
+        height: 130px;
+        top: 50%;
+        left: 50%;
+        -webkit-transform: translateX(-50%) translateY(-50%);
+        -moz-transform: translateX(-50%) translateY(-50%);
+        -ms-transform: translateX(-50%) translateY(-50%);
+        transform: translateX(-50%) translateY(-50%);
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dialog-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        width: 95%;
+    }
+
+    .dialog-textbox {
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+
+    .save-as-textbox {}
+
+    .dialog-button {}
+</style>
+
 <body>
-    <!--  -->
     <button id="hamburger-button">&#9776;</button>
+
     <div class="menu-container" id="menu-container">
         <button id="toggle-button" class="contextButton">Toggle Dark Mode</button>
-        <button id="" class="contextButton json-button" onclick="downloadLocalStorage()">Save JSON</button>
-        <button id="" class="contextButton json-button" onclick="loadJSONFile()">Load JOSN</button>
+        <button id="" class="contextButton json-button" onclick="downloadLocalStorage()">Save</button>
+        <button id="" class="contextButton json-button" onclick="toggleSaveAsDialog()">Save As</button>
+        <button id="" class="contextButton json-button" onclick="loadJSONFile()">Load</button>
     </div>
+
+    <div class="dialog-bg" id="dialog-saveas">
+        <div class="dialog-box">
+            <div class="dialog-text">
+                <div>Name</div>
+                <button class="closeBtn" onclick="toggleSaveAsDialog()">X</button>
+            </div>
+            <div class="dialog-textbox">
+                <input id="save-as-textbox" type="text">
+            </div>
+            <div class="dialog-button">
+                <button id="" class="contextButton json-button" onclick="toggleSaveAsDialog()">Cancel</button>
+                <button id="" class="contextButton json-button" onclick="saveLocalStorageAs()">Save As</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSaveAsDialog() {
+            let dialog = document.getElementById("dialog-saveas");
+            dialog.classList.toggle("showdig");
+        }
+    </script>
 
     <script>
         let hamburgerButton = document.getElementById("hamburger-button");
@@ -66,10 +146,10 @@
             menuContainer.classList.toggle("show");
         });
 
-        menuContainer.addEventListener("onmouseout", function () {
-            if (menuContainer.classList.contains("show")) {
-                menuContainer.classList.toggle("show");
-            }
+        menuContainer.addEventListener("mouseleave", function (e) {
+            console.log(e)
+            // if(e.relatedTarget !== )
+            menuContainer.classList.toggle("show");
         });
     </script>
 
@@ -241,7 +321,7 @@
                 resizableDiv.style.left = left + "px";
             }
             zIndexOrder.push(resizableDiv)
-            if(ConEvent != undefined) {
+            if (ConEvent != undefined) {
                 resizableDiv.style.zIndex = zIndexOrder.length - 1
             }
             let textArea = document.createElement("textarea");
@@ -333,7 +413,7 @@
             }
         });
 
-        function downloadLocalStorage() {
+        function downloadLocalStorage(fileName = "localStorage") {
             let data = {};
             for (let i = 0; i < localStorage.length; i++) {
                 let key = localStorage.key(i);
@@ -344,11 +424,19 @@
 
             let a = document.createElement("a");
             a.href = "data:text/json;charset=utf-8," + encodeURIComponent(json);
-            a.download = "localStorage.json";
+            a.download = fileName + ".json";
             a.innerHTML = "Download local storage";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+        }
+
+        function saveLocalStorageAs() {
+            let nameOfFile = document.getElementById("save-as-textbox").value;
+            if (nameOfFile != undefined || nameOfFile.length != 0) {
+                downloadLocalStorage(nameOfFile)
+                toggleSaveAsDialog()
+            }
         }
 
         function loadJSONFile() {

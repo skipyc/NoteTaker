@@ -50,7 +50,7 @@ button {
     /* transition: background-color 0.3s ease-in-out; */
 }
 
-.resizable-div button:hover {
+.closeBtn:hover {
     background-color: red;
     color: white;
     cursor: pointer;
@@ -77,4 +77,16 @@ textarea:focus {
     background-color: #333;
     color: white;
     cursor: pointer;
+}
+
+input {
+    outline: black 1px solid;
+    background-color: transparent;
+    border: none;
+    padding: 8px;
+    color: black;
+}
+
+.dialog-box {
+    background-color: rgb(255, 255, 255);
 }
