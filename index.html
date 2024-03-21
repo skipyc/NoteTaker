@@ -401,6 +401,48 @@
                 localStorage.setItem("resizableDiv" + resizableDiv.id, JSON.stringify(data));
             });
 
+            var spacesPerTab = 4;
+            textArea.addEventListener('keydown', function (event) {
+                if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    var textarea = event.target;
+                    var start = textarea.selectionStart;
+                    var end = textarea.selectionEnd;
+
+                    // Insert spaces instead of a tab character
+                    var spacesToInsert = ' '.repeat(spacesPerTab);
+                    textarea.value = textarea.value.substring(0, start) + spacesToInsert + textarea.value.substring(end);
+
+                    // Move the cursor position to after the inserted spaces
+                    textarea.selectionStart = textarea.selectionEnd = start + spacesPerTab;
+                } else if (event.key === 'Tab' && event.shiftKey) {
+                    event.preventDefault();
+                    var textarea = event.target;
+                    var start = textarea.selectionStart;
+                    var end = textarea.selectionEnd;
+
+                    // Get the current line text
+                    var lines = textarea.value.split('\n');
+                    var currentLineIndex = textarea.value.substr(0, start).split('\n').length - 1;
+                    var currentLineText = lines[currentLineIndex];
+
+                    // Calculate the indentation level
+                    var leadingWhitespace = currentLineText.match(/^\s*/)[0];
+                    var numSpacesToRemove = spacesPerTab; // Remove one tab at a time
+
+                    // If the line starts with spaces, remove them
+                    if (leadingWhitespace.startsWith(' '.repeat(spacesPerTab))) {
+                        var numCharsToRemove = Math.min(numSpacesToRemove, leadingWhitespace.length);
+                        var newText = leadingWhitespace.substring(numCharsToRemove);
+                        lines[currentLineIndex] = newText + currentLineText.substring(newText.length);
+                        textarea.value = lines.join('\n');
+
+                        // Move the cursor position accordingly
+                        textarea.selectionStart = textarea.selectionEnd = start - numCharsToRemove;
+                    }
+                }
+            });
+
             return resizableDiv;
         }
 
